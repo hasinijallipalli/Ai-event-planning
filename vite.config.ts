@@ -9,10 +9,7 @@ export default defineConfig({
     tanstackStart({
       server: { entry: "server" },
     }),
-    nitro({
-      preset: "cloudflare-module",
-      compatibilityDate: "2026-08-28",
-    }),
+    nitro(),
     viteReact(),
     tailwindcss(),
   ],
