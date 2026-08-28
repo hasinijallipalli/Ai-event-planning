@@ -1,0 +1,119 @@
+{
+  "venues": [
+    {
+      "id": "audi-main",
+      "name": "Main Auditorium",
+      "capacity": 900,
+      "indoor": true,
+      "features": ["Stage", "PA system", "Projector", "AC"]
+    },
+    {
+      "id": "audi-mini",
+      "name": "Mini Auditorium",
+      "capacity": 250,
+      "indoor": true,
+      "features": ["Stage", "PA system", "Projector"]
+    },
+    {
+      "id": "seminar-a",
+      "name": "Seminar Hall A",
+      "capacity": 120,
+      "indoor": true,
+      "features": ["Projector", "AC", "Recording"]
+    },
+    {
+      "id": "lab-cs1",
+      "name": "CS Lab Block 1",
+      "capacity": 90,
+      "indoor": true,
+      "features": ["90 workstations", "LAN", "UPS backup"]
+    },
+    {
+      "id": "lab-cs2",
+      "name": "CS Lab Block 2",
+      "capacity": 90,
+      "indoor": true,
+      "features": ["90 workstations", "LAN", "UPS backup"]
+    },
+    {
+      "id": "openair",
+      "name": "Open Air Theatre",
+      "capacity": 1500,
+      "indoor": false,
+      "features": ["Large stage", "Lighting rig", "Power grid"]
+    },
+    {
+      "id": "quad",
+      "name": "Central Quadrangle",
+      "capacity": 2000,
+      "indoor": false,
+      "features": ["Stall space", "Power points"]
+    },
+    {
+      "id": "placement",
+      "name": "Placement Centre",
+      "capacity": 200,
+      "indoor": true,
+      "features": ["Interview rooms", "AC", "Waiting lounge"]
+    }
+  ],
+  "bookings": [
+    {
+      "venueId": "audi-main",
+      "title": "Convocation Rehearsal",
+      "date": "2026-09-12",
+      "start": "08:00",
+      "end": "13:00",
+      "owner": "Registrar Office"
+    },
+    {
+      "venueId": "audi-main",
+      "title": "Guest Lecture: Quantum Computing",
+      "date": "2026-09-14",
+      "start": "10:00",
+      "end": "12:30",
+      "owner": "Physics Dept"
+    },
+    {
+      "venueId": "lab-cs1",
+      "title": "Semester Practical Exam",
+      "date": "2026-09-12",
+      "start": "09:00",
+      "end": "17:00",
+      "owner": "Exam Cell"
+    },
+    {
+      "venueId": "seminar-a",
+      "title": "NAAC Committee Review",
+      "date": "2026-09-13",
+      "start": "09:30",
+      "end": "16:00",
+      "owner": "IQAC"
+    },
+    {
+      "venueId": "openair",
+      "title": "Cultural Night Setup",
+      "date": "2026-09-15",
+      "start": "14:00",
+      "end": "23:00",
+      "owner": "Cultural Club"
+    },
+    {
+      "venueId": "placement",
+      "title": "TCS Recruitment Drive",
+      "date": "2026-09-14",
+      "start": "08:30",
+      "end": "18:00",
+      "owner": "T&P Cell"
+    }
+  ],
+  "supportTeams": [
+    "Volunteer Corps",
+    "Security & Access Control",
+    "AV / Technical Crew",
+    "Transport & Logistics",
+    "Hospitality & Catering",
+    "Medical & Safety",
+    "Media & Communications"
+  ]
+}
