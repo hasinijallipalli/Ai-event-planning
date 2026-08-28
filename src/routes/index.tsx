@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   ClipboardList,
   Database,
-  FileUp,
   Loader2,
   MapPin,
   Megaphone,
@@ -68,14 +67,11 @@ const SAMPLES = [
   "Placement drive for Infosys on 14 September 2026, 250 final-year students, aptitude test then interviews, needs waiting lounge and transport for panel.",
 ];
 
-const DATASET_STORAGE_KEY = "campusops-dataset-v1";
-
 function Index() {
   const [requirement, setRequirement] = useState("");
   const [disruption, setDisruption] = useState("");
   const [plan, setPlan] = useState<EventPlan | null>(null);
   const [dataset, setDataset] = useState<CampusDataset>(EMPTY_CAMPUS_DATASET);
-  const [datasetName, setDatasetName] = useState("Loading sample dataset");
   const [doneTasks, setDoneTasks] = useState<Record<string, boolean>>({});
   const [doneChecks, setDoneChecks] = useState<Record<string, boolean>>({});
 
@@ -83,17 +79,6 @@ function Index() {
   const replanFn = useServerFn(replan);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(DATASET_STORAGE_KEY);
-    if (stored) {
-      try {
-        setDataset(parseCampusDataset(JSON.parse(stored)));
-        setDatasetName("Uploaded campus dataset");
-        return;
-      } catch {
-        window.localStorage.removeItem(DATASET_STORAGE_KEY);
-      }
-    }
-
     void loadSampleDataset();
   }, []);
 
@@ -102,41 +87,10 @@ function Index() {
       const response = await fetch("/datasets/campus-operations.sample.json");
       const nextDataset = parseCampusDataset(await response.json());
       setDataset(nextDataset);
-      setDatasetName("Sample campus operations dataset");
-      window.localStorage.setItem(DATASET_STORAGE_KEY, JSON.stringify(nextDataset));
     } catch (error) {
       console.error(error);
       toast.error("Dataset load failed", {
         description: "Upload a JSON or CSV dataset to continue.",
-      });
-    }
-  }
-
-  function applyDataset(nextDataset: CampusDataset, source: string) {
-    setDataset(nextDataset);
-    setDatasetName(source);
-    setPlan(null);
-    setDoneTasks({});
-    setDoneChecks({});
-    window.localStorage.setItem(DATASET_STORAGE_KEY, JSON.stringify(nextDataset));
-    toast.success("Dataset loaded", {
-      description: `${nextDataset.venues.length} venues, ${nextDataset.bookings.length} bookings, ${nextDataset.supportTeams.length} teams`,
-    });
-  }
-
-  async function handleDatasetUpload(file: File | undefined) {
-    if (!file) return;
-
-    try {
-      const text = await file.text();
-      const parsed = file.name.toLowerCase().endsWith(".csv")
-        ? parseDatasetCsv(text)
-        : JSON.parse(text);
-      applyDataset(parseCampusDataset(parsed), file.name);
-    } catch (error) {
-      console.error(error);
-      toast.error("Dataset rejected", {
-        description: "Use JSON with venues/bookings/supportTeams or the CSV template columns.",
       });
     }
   }
@@ -231,39 +185,6 @@ function Index() {
             dataset.
           </p>
         </header>
-
-        <section className="surface-panel mb-4 p-5 md:p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <Database className="h-4 w-4 text-accent" />
-                Training / operations dataset
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">{datasetName}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-                <FileUp className="h-4 w-4" />
-                Upload JSON/CSV
-                <Input
-                  type="file"
-                  accept=".json,.csv,application/json,text/csv"
-                  className="sr-only"
-                  onChange={(event) => void handleDatasetUpload(event.target.files?.[0])}
-                />
-              </label>
-              <Button variant="secondary" onClick={() => void loadSampleDataset()}>
-                <Database className="h-4 w-4" />
-                Reload sample
-              </Button>
-            </div>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <Stat icon={MapPin} label="Venues" value={String(dataset.venues.length)} />
-            <Stat icon={CalendarClock} label="Bookings" value={String(dataset.bookings.length)} />
-            <Stat icon={Users} label="Teams" value={String(dataset.supportTeams.length)} />
-          </div>
-        </section>
 
         <section className="surface-panel p-5 md:p-6">
           <label className="text-sm font-semibold" htmlFor="requirement">
@@ -682,85 +603,4 @@ function Stat({
       <div className="mt-1 text-sm font-medium">{value}</div>
     </div>
   );
-}
-
-function parseDatasetCsv(text: string): unknown {
-  const rows = text
-    .trim()
-    .split(/\r?\n/)
-    .map((line) => splitCsvLine(line));
-  const [headers, ...records] = rows;
-
-  if (!headers?.length) {
-    throw new Error("CSV is empty");
-  }
-
-  const normalizedHeaders = headers.map((header) => header.trim());
-  const dataset: CampusDataset = {
-    venues: [],
-    bookings: [],
-    supportTeams: [],
-  };
-
-  for (const record of records) {
-    const row = Object.fromEntries(
-      normalizedHeaders.map((header, index) => [header, record[index]?.trim() ?? ""]),
-    ) as Record<string, string>;
-    const kind = (cell(row, "recordType") || cell(row, "type")).toLowerCase();
-
-    if (kind === "venue") {
-      dataset.venues.push({
-        id: cell(row, "id"),
-        name: cell(row, "name"),
-        capacity: Number(cell(row, "capacity")),
-        indoor: /true|yes|1|indoor/i.test(cell(row, "indoor")),
-        features: cell(row, "features")
-          .split(/[|;]/)
-          .map((feature) => feature.trim())
-          .filter(Boolean),
-      });
-    }
-
-    if (kind === "booking") {
-      dataset.bookings.push({
-        venueId: cell(row, "venueId"),
-        title: cell(row, "title"),
-        date: cell(row, "date"),
-        start: cell(row, "start"),
-        end: cell(row, "end"),
-        owner: cell(row, "owner"),
-      });
-    }
-
-    if (kind === "team") {
-      const team = cell(row, "team") || cell(row, "name");
-      if (team) dataset.supportTeams.push(team);
-    }
-  }
-
-  return dataset;
-}
-
-function cell(row: Record<string, string>, key: string) {
-  return row[key] ?? "";
-}
-
-function splitCsvLine(line: string) {
-  const cells: string[] = [];
-  let current = "";
-  let quoted = false;
-
-  for (const char of line) {
-    if (char === '"') {
-      quoted = !quoted;
-    } else if (char === "," && !quoted) {
-      cells.push(current);
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-
-  cells.push(current);
-  return cells;
 }
